@@ -59,10 +59,10 @@
     NSManagedObjectContext *managedObjectContext = self.managedObjectContext;
     if (managedObjectContext != nil) {
         if ([managedObjectContext hasChanges] && ![managedObjectContext save:&error]) {
-             // Replace this implementation with code to handle the error appropriately.
-             // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development. 
+            
+            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Unresolved error saving data" message:@"Terminating app" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            [av show];
             NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-            abort();
         } 
     }
 }
@@ -133,11 +133,22 @@
          Lightweight migration will only work for a limited set of schema changes; consult "Core Data Model Versioning and Data Migration Programming Guide" for details.
          
          */
+        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Persistent store error" message:@"Terminating app" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        [av show];
         NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-        abort();
+
     }    
     
     return _persistentStoreCoordinator;
+}
+
+#pragma mark - alert view delegate method
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
+{
+    if (buttonIndex == 0) {
+        exit(0);
+    }
 }
 
 #pragma mark - Application's Documents directory

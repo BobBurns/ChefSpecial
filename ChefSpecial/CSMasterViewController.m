@@ -7,8 +7,8 @@
 //
 
 #import "CSMasterViewController.h"
-
 #import "CSDetailViewController.h"
+#import "Dish.h"
 
 @interface CSMasterViewController ()
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
@@ -41,19 +41,23 @@
 {
     NSManagedObjectContext *context = [self.fetchedResultsController managedObjectContext];
     NSEntityDescription *entity = [[self.fetchedResultsController fetchRequest] entity];
-    NSManagedObject *newManagedObject = [NSEntityDescription insertNewObjectForEntityForName:[entity name] inManagedObjectContext:context];
+    Dish *theDish = [NSEntityDescription insertNewObjectForEntityForName:[entity name] inManagedObjectContext:context];
     
     // If appropriate, configure the new managed object.
     // Normally you should use accessor methods, but using KVC here avoids the need to add a custom class to the template.
-    [newManagedObject setValue:[NSDate date] forKey:@"timeStamp"];
-    
+    theDish.name = @"New Dish";
+    theDish.pricePerPound = [NSNumber numberWithDouble:2.95];
+    theDish.portionSize = [NSNumber numberWithDouble:4.0];
+    theDish.wastePercent = [NSNumber numberWithDouble:0.0];
+    theDish.additionalPlateCost = [NSNumber numberWithDouble:1.0];
+    theDish.foodCostPercent = [NSNumber numberWithDouble:25.0];
     // Save the context.
     NSError *error = nil;
     if (![context save:&error]) {
-         // Replace this implementation with code to handle the error appropriately.
-         // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development. 
+        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Unresolved error saving data" message:@"Terminating app" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        av.delegate = self;
+        [av show];
         NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-        abort();
     }
 }
 
@@ -91,10 +95,9 @@
         
         NSError *error = nil;
         if (![context save:&error]) {
-             // Replace this implementation with code to handle the error appropriately.
-             // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development. 
+            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Unresolved error saving data" message:@"Terminating app" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            [av show];
             NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-            abort();
         }
     }   
 }
@@ -105,12 +108,14 @@
     return NO;
 }
 
+#pragma mark - set up Segue
+
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
     if ([[segue identifier] isEqualToString:@"showDetail"]) {
         NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-        NSManagedObject *object = [[self fetchedResultsController] objectAtIndexPath:indexPath];
-        [[segue destinationViewController] setDetailItem:object];
+        Dish *theDish = [[self fetchedResultsController] objectAtIndexPath:indexPath];
+        [[segue destinationViewController] setDetailItem:[theDish objectID]];
     }
 }
 
@@ -124,14 +129,14 @@
     
     NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
     // Edit the entity name as appropriate.
-    NSEntityDescription *entity = [NSEntityDescription entityForName:@"Event" inManagedObjectContext:self.managedObjectContext];
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"Dish" inManagedObjectContext:self.managedObjectContext];
     [fetchRequest setEntity:entity];
     
     // Set the batch size to a suitable number.
     [fetchRequest setFetchBatchSize:20];
     
     // Edit the sort key as appropriate.
-    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"timeStamp" ascending:NO];
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"name" ascending:NO];
     NSArray *sortDescriptors = @[sortDescriptor];
     
     [fetchRequest setSortDescriptors:sortDescriptors];
@@ -144,10 +149,9 @@
     
 	NSError *error = nil;
 	if (![self.fetchedResultsController performFetch:&error]) {
-	     // Replace this implementation with code to handle the error appropriately.
-	     // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development. 
+        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Unresolved error fetching data" message:@"Terminating app" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        [av show];
 	    NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-	    abort();
 	}
     
     return _fetchedResultsController;
@@ -215,8 +219,17 @@
 
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath
 {
-    NSManagedObject *object = [self.fetchedResultsController objectAtIndexPath:indexPath];
-    cell.textLabel.text = [[object valueForKey:@"timeStamp"] description];
+    Dish *theDish = [self.fetchedResultsController objectAtIndexPath:indexPath];
+    cell.textLabel.text = theDish.name;
 }
+#pragma mark - alert view delegate method
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
+{
+    if (buttonIndex == 0) {
+        exit(0);
+    }
+}
+
 
 @end
